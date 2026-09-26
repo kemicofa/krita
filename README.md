@@ -8,6 +8,11 @@ a carpenter pencil, hard charcoal, willow charcoal, and Conté. Nine brushes use
 and choose `Tilt_Sketch_Pencils.bundle`, or the ZIP for the bundle, preview, and guide.
 No compilation, Python installation, or plugin is needed to use the brushes.
 
+![Custom pencil preset icons](previews/Icon_Preview.png)
+
+Each preset has its own illustrated tool icon, grade label, and number. The release
+also includes an **Icons ZIP** with the ten standalone 200 × 200 PNGs.
+
 ![Actual Krita-rendered pencil strokes](previews/Brush_Preview.png)
 
 ## Install in Krita
@@ -17,6 +22,10 @@ No compilation, Python installation, or plugin is needed to use the brushes.
    Depending on your Krita version, resource importing is under **Manage Resources…**.
 3. Make sure the library is active. In **Brush Presets**, select **All** and search
    for **TSP**, or select the **Tilt Sketch Pencils** tag. Restart Krita if needed.
+
+When updating an older version, deactivate its library and import the new bundle.
+The preset names stay the same. If you saved local copies of the older presets,
+those copies retain their old icons; select the presets from the new library.
 
 The pack targets Krita 5.x. It was rendered locally in Krita 5.2.9; every CI build
 also loads and renders the pack in the Krita version supplied by Ubuntu 24.04.
@@ -84,6 +93,12 @@ coverage masks, and tileable paper textures. The PNG metadata and resource-bundl
 layout follow Krita's native formats. All artwork and masks in this pack are original;
 no default Krita brush assets are redistributed.
 
+The icon illustrations were generated using the built-in image generator. Original
+PNGs and the exact prompt set are checked in under `assets/icons/`. The build resizes
+those assets and adds the labels locally; builds do not call an image API.
+The marks in the icons are decorative illustrations. The separate brush preview
+shows actual strokes rendered by Krita.
+
 To run the same rendering checks as CI, install Krita with Python support and run:
 
 ```sh
@@ -117,12 +132,13 @@ To publish a new version:
 3. Tag that commit with the matching version and push the tag:
 
    ```sh
-   git tag -a v1.0.1 -m "Tilt Sketch Pencils 1.0.1"
-   git push origin v1.0.1
+   git tag -a v1.1.1 -m "Tilt Sketch Pencils 1.1.1"
+   git push origin v1.1.1
    ```
 
 The tag workflow rebuilds and tests the pack before publishing a GitHub release
-with the bundle, ZIP, preview, validation report, brush catalog, and SHA-256 checksums.
+with the bundle, pack and icon ZIPs, both previews, validation report, brush catalog,
+and SHA-256 checksums.
 It uses GitHub's built-in token; no additional secrets are required. Existing release
 tags should stay attached to their published commits.
 

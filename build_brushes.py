@@ -23,6 +23,10 @@ from PIL import Image, ImageDraw, ImageFont, PngImagePlugin
 ROOT = Path(__file__).resolve().parent
 OUTPUT = ROOT / 'dist'
 VERSION = (ROOT/'VERSION').read_text().strip()
+ICON_ASSETS = {
+    entry['id']: ROOT/'assets/icons'/entry['file']
+    for entry in json.loads((ROOT/'assets/icons/prompts.json').read_text())['assets']
+}
 NAME = 'Tilt Sketch Pencils'
 IDENTITY = '0,0;1,1;'
 
@@ -223,19 +227,36 @@ def font(size, bold=False):
 
 
 def icon(spec):
-    im = Image.new('RGB', (200,200), '#f4f0e8')
+    with Image.open(ICON_ASSETS[spec['id']]) as artwork:
+        im = artwork.convert('RGB').resize((200,200),Image.Resampling.LANCZOS)
     draw = ImageDraw.Draw(im)
-    accent = '#a76144' if spec['id']>=8 else '#397777'
-    draw.rectangle((0,0,199,8), fill=accent)
-    draw.text((12,14), f"{spec['id']:02}", font=font(22,True), fill=accent)
-    draw.text((64,15), spec['grade'], font=font(19,True), fill='#252c30')
-    # Code-native icon: a pencil with a visible sharpened lead.
-    draw.polygon([(35,139),(143,61),(158,81),(50,159)], fill=accent)
-    draw.polygon([(35,139),(50,159),(18,168)], fill='#c6a77d')
-    draw.polygon([(18,168),(25,150),(36,164)], fill='#343435')
-    draw.line([(42,143),(149,67)], fill='#dadacb', width=3)
-    draw.text((12,176), 'FIXED TIP' if spec['id']==6 else 'TILT + PRESSURE', font=font(12,True), fill=accent)
+    colors = ['#4f6277','#89631c','#185d61','#762d40','#44505f',
+              '#41596a','#aa4e16','#383b3d','#403c38','#9b482e']
+    accent = colors[spec['id']-1]
+    label_font = font(24,True)
+    label_width = draw.textbbox((0,0),spec['grade'],font=label_font)[2]
+    draw.rounded_rectangle((6,6,22+label_width,39),radius=6,fill='#f4f0e8')
+    draw.text((14,9),spec['grade'],font=label_font,fill=accent)
+    draw.rectangle((0,182,199,199),fill='#f4f0e8')
+    draw.text((10,185),'FIXED TIP' if spec['id']==6 else 'TILT',font=font(11),fill=accent)
+    draw.text((173,184),f"{spec['id']:02}",font=font(13),fill=accent)
     return im
+
+
+def icon_preview(thumbnails):
+    page = Image.new('RGB',(1280,812),'#efeee8')
+    draw = ImageDraw.Draw(page)
+    draw.text((40,25),'TILT SKETCH PENCILS / ICONS',font=font(34),fill='#253b3c')
+    draw.text((40,73),'Ten illustrated presets, with grade labels and distinct tool silhouettes.',font=font(19),fill='#526563')
+    for index,(spec,thumbnail) in enumerate(thumbnails):
+        x,y = 40+(index%5)*240,110+(index//5)*280
+        draw.rounded_rectangle((x-8,y-8,x+216,y+251),radius=10,fill='#ffffff')
+        page.paste(thumbnail,(x+4,y))
+        draw.text((x+2,y+218),spec['name'],font=font(18),fill='#253b3c')
+    draw.text((40,686),'64 PX / COMPACT PRESET GRID',font=font(15),fill='#526563')
+    for index,(_,thumbnail) in enumerate(thumbnails):
+        page.paste(thumbnail.resize((64,64),Image.Resampling.LANCZOS),(40+index*80,718))
+    page.save(OUTPUT/'Icon_Preview.png')
 
 
 def bundle(files):
@@ -291,6 +312,8 @@ def main():
     OUTPUT = parser.parse_args().output.resolve()
     OUTPUT.mkdir(parents=True,exist_ok=True)
     files = {}
+    thumbnails = []
+    (OUTPUT/'icons').mkdir(exist_ok=True)
     patterns = {}
     for kind in ['fine','medium','rough','laid']:
         name = f'TSP_paper_{kind}.png'
@@ -309,13 +332,17 @@ def main():
         metadata.add_text('version','5.0')
         metadata.add_text('preset',xml,zip=True)
         out = io.BytesIO()
-        icon(spec).save(out,format='PNG',pnginfo=metadata)
+        thumbnail = icon(spec)
+        thumbnail.save(OUTPUT/'icons'/(stem+'.png'))
+        thumbnails.append((spec,thumbnail))
+        thumbnail.save(out,format='PNG',pnginfo=metadata)
         files['paintoppresets/'+stem+'.kpp'] = out.getvalue()
     for path,data in files.items():
         target = OUTPUT/'resources'/path
         target.parent.mkdir(parents=True,exist_ok=True)
         target.write_bytes(data)
     bundle(files)
+    icon_preview(thumbnails)
     (OUTPUT/'brush_catalog.json').write_text(json.dumps(SPECS,indent=2)+'\n')
     print(f"Built {len(SPECS)} presets, 10 brush tips, 4 paper textures.")
     print(OUTPUT/'Tilt_Sketch_Pencils.bundle')

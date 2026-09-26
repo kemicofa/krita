@@ -53,8 +53,10 @@ jobs:
           retention-days: 30
           path: |
             dist/*.bundle
-            dist/*.zip
+            dist/Tilt_Sketch_Pencils-*.zip
+            dist/Tilt_Sketch_Pencils_Icons-*.zip
             dist/Brush_Preview.png
+            dist/Icon_Preview.png
             dist/SHA256SUMS.txt
             dist/validation.json
             dist/brush_catalog.json
