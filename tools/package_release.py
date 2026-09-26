@@ -8,7 +8,9 @@ from zipfile import ZipFile, ZIP_DEFLATED
 ROOT=Path(__file__).resolve().parents[1]
 DIST=ROOT/'dist'
 version=(ROOT/'VERSION').read_text().strip()
-shutil.copy(ROOT/'README.md',DIST/'README.md')
+guide=(ROOT/'README.md').read_text().replace('(previews/Brush_Preview.png)','(Brush_Preview.png)')
+guide=guide.replace('](LICENSE)','](LICENSE.txt)')
+(DIST/'README.md').write_text(guide)
 shutil.copy(ROOT/'LICENSE',DIST/'LICENSE.txt')
 shutil.copy(ROOT/'build/krita-test/validation.json',DIST/'validation.json')
 files=['Tilt_Sketch_Pencils.bundle','Brush_Preview.png','README.md','LICENSE.txt','brush_catalog.json','validation.json']
