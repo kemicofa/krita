@@ -34,13 +34,13 @@ jobs:
         run: |
           python -m pip install -r requirements.txt
           sudo apt-get update -qq
-          sudo apt-get install -y --no-install-recommends krita python3-pyqt5
+          sudo apt-get install -y --no-install-recommends krita python3-pyqt5 xvfb xauth
       - name: Build and validate bundle
         run: |
           python build_brushes.py
           python verify_bundle.py
       - name: Render and check pressure and tilt in Krita
-        run: python tools/run_krita_check.py --python-home /usr
+        run: xvfb-run -a python tools/run_krita_check.py --python-home /usr
       - name: Create preview and release archives
         run: |
           python tools/make_preview.py

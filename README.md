@@ -95,7 +95,9 @@ python tools/package_release.py
 That `--python-home` value is for a system Linux installation. For an extracted
 AppImage, pass `--krita /path/to/squashfs-root/AppRun` and
 `--python-home /path/to/squashfs-root/usr`. Omit `--python-home` when Krita already
-locates its embedded Python correctly. Close other Krita instances before running
+locates its embedded Python correctly. On a Linux machine without a display, install
+`xvfb` and `xauth` and prefix the rendering-check command with `xvfb-run -a`.
+Close other Krita instances before running
 the rendering check. The check uses a temporary resource/configuration directory.
 
 The checks verify bundle checksums, embedded dependencies, all ten presets loading,
