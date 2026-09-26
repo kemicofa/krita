@@ -1,0 +1,93 @@
+name: Build and release pencils
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: '3.12'
+          cache: pip
+      - name: Check release version
+        env:
+          REF_TYPE: ${{ github.ref_type }}
+          REF_NAME: ${{ github.ref_name }}
+        run: |
+          if [ "$REF_TYPE" = tag ]; then
+            test "$REF_NAME" = "v$(cat VERSION)"
+          fi
+      - name: Install build and rendering dependencies
+        run: |
+          python -m pip install -r requirements.txt
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends krita python3-pyqt5
+      - name: Build and validate bundle
+        run: |
+          python build_brushes.py
+          python verify_bundle.py
+      - name: Render and check pressure and tilt in Krita
+        run: python tools/run_krita_check.py --python-home /usr
+      - name: Create preview and release archives
+        run: |
+          python tools/make_preview.py
+          python tools/package_release.py
+      - name: Upload installable pack
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: Tilt-Sketch-Pencils
+          if-no-files-found: error
+          retention-days: 30
+          path: |
+            dist/*.bundle
+            dist/*.zip
+            dist/Brush_Preview.png
+            dist/SHA256SUMS.txt
+            dist/validation.json
+            dist/brush_catalog.json
+      - name: Upload rendering diagnostics on failure
+        if: failure()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: Krita-diagnostics
+          path: build/krita-test/
+          if-no-files-found: ignore
+
+  release:
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+    needs: build
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5
+        with:
+          name: Tilt-Sketch-Pencils
+          path: release
+      - name: Publish GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          gh release create "$RELEASE_TAG" release/* \
+            --verify-tag \
+            --title "Tilt Sketch Pencils $RELEASE_TAG" \
+            --notes-file RELEASE_NOTES.md
