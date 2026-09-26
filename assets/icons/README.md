@@ -1,8 +1,10 @@
 # Pencil preset illustrations
 
-`artwork/` contains ten original full-size PNG illustrations generated with the
+`artwork/` contains eleven original full-size PNG illustrations generated with the
 built-in `image_gen` tool on 2026-09-27. `prompts.json` records the exact prompt and
 the matching source file for each preset. No default Krita artwork was used.
+Soft Touch also records the follow-up edit prompt that darkened its pencil and
+pigment stroke to near-black charcoal.
 
 The generator loads the matching image by preset ID, resizes it to 200 × 200, and
 adds the grade, number, and tilt/fixed-tip labels using Pillow's bundled font.

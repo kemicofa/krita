@@ -1,8 +1,9 @@
 # Tilt Sketch Pencils
 
-Ten original sketching brushes for Krita: five graphite grades, a mechanical pencil,
-a carpenter pencil, hard charcoal, willow charcoal, and Conté. Nine brushes use
-**pen tilt for width, tip shape, and shading direction**. All ten respond to pressure.
+Eleven original sketching brushes for Krita: five graphite grades, a mechanical pencil,
+a carpenter pencil, hard charcoal, willow charcoal, Conté, and **Soft Touch** for dark
+marks with light pressure and pointy endings. Ten brushes use
+**pen tilt for width, tip shape, and shading direction**. All eleven respond to pressure.
 
 **[Download the latest release](https://github.com/kemicofa/krita/releases/latest)**
 and choose `Tilt_Sketch_Pencils.bundle`, or the ZIP for the bundle, preview, and guide.
@@ -11,7 +12,7 @@ No compilation, Python installation, or plugin is needed to use the brushes.
 ![Custom pencil preset icons](previews/Icon_Preview.png)
 
 Each preset has its own illustrated tool icon, grade label, and number. The release
-also includes an **Icons ZIP** with the ten standalone 200 × 200 PNGs.
+also includes an **Icons ZIP** with the eleven standalone 200 × 200 PNGs.
 
 ![Actual Krita-rendered pencil strokes](previews/Brush_Preview.png)
 
@@ -30,7 +31,7 @@ those copies retain their old icons; select the presets from the new library.
 The pack targets Krita 5.x. It was rendered locally in Krita 5.2.9; every CI build
 also loads and renders the pack in the Krita version supplied by Ubuntu 24.04.
 
-## The ten pencils
+## The eleven pencils
 
 | Preset | Best use | Pressure and tilt behavior |
 | --- | --- | --- |
@@ -44,9 +45,31 @@ also loads and renders the pack in the Krita version supplied by Ubuntu 24.04.
 | **08 · Hard Charcoal** | Dry contours and scratchy shading | Broken grain, firmer edges, strong line-to-side contrast |
 | **09 · Willow Charcoal** | Soft shadow masses and atmospheric studies | Powdery deposit, soft edges, the broadest side shading |
 | **10 · Conte Sketch** | Dense contours and planar shading | Squared contact and slightly waxy coverage; try a rust-red foreground |
+| **11 · Soft Touch** | Dark sketching with a light hand | Thick, dark marks early in the pressure range; eases down to a fine point; broadens with tilt |
 
 Names such as “0.5” describe the intended drawing feel, not a physical millimeter
 width. Pixel sizes vary with the canvas, zoom, pressure, and tilt.
+
+## Soft Touch: dark strokes and pointy endings
+
+Select **TSP 11 - Soft Touch**. Its width and darkness rise quickly at low pressure,
+so you do not need to press hard. It keeps a little paper grain when shading on its
+side. The default upright stroke is about 8 px wide at 20% reported pen pressure
+in the automated rendering test; physical force depends on your tablet and driver.
+
+For the requested deep charcoal color, select **TSP Graphite Charcoal** in the
+[Palette docker](https://docs.krita.org/en/reference_manual/dockers/palette_docker.html)
+and click **Near Black Charcoal** (**#101010**, RGB 16, 16, 16). The palette is included
+in the bundle and also available as `TSP_Graphite_Charcoal.gpl`. You can instead enter
+the hex value in Krita's foreground color dialog. Like the other pencils, this preset
+uses your selected foreground color; choosing the brush does not change it automatically.
+
+To finish in a **point**, keep moving as you ease off the pen. The size curve drops
+to zero instead of retaining a thick minimum tip. An abrupt lift at constant pressure
+can still leave a blunt end: the brush needs decreasing pressure samples from the
+tablet to draw the taper. No global tablet pressure settings need changing.
+
+![Actual Soft Touch strokes and pointy endings](previews/Soft_Touch_Preview.png)
 
 ## Get the pencil feel
 
@@ -88,7 +111,7 @@ The installable file is `dist/Tilt_Sketch_Pencils.bundle`. The `dist/resources/`
 directory also contains individual `.kpp` presets, `.gbr` tips, and PNG paper
 textures. Each preset embeds its tip and texture to avoid missing dependencies.
 
-`build_brushes.py` contains the ten brush specifications, sensor curves, procedural
+`build_brushes.py` contains the eleven brush specifications, sensor curves, procedural
 coverage masks, and tileable paper textures. The PNG metadata and resource-bundle
 layout follow Krita's native formats. All artwork and masks in this pack are original;
 no default Krita brush assets are redistributed.
@@ -115,9 +138,11 @@ locates its embedded Python correctly. On a Linux machine without a display, ins
 Close other Krita instances before running
 the rendering check. The check uses a temporary resource/configuration directory.
 
-The checks verify bundle checksums, embedded dependencies, all ten presets loading,
+The checks verify bundle checksums, embedded dependencies, all eleven presets loading,
 light/heavy pressure, broadening under tilt, orientation of the flat contact,
-and the mechanical pencil's stable width. The preview is rendered by Krita using
+the mechanical pencil's stable width, the near-black palette loading, and Soft Touch's
+low-pressure width/darkness and pointed taper in both upright and tilted strokes.
+The preview is rendered by Krita using
 synthetic tablet events. **Physical tablet feel has not been tested.**
 
 ## CI and releases
@@ -132,12 +157,12 @@ To publish a new version:
 3. Tag that commit with the matching version and push the tag:
 
    ```sh
-   git tag -a v1.1.1 -m "Tilt Sketch Pencils 1.1.1"
-   git push origin v1.1.1
+   git tag -a v1.2.1 -m "Tilt Sketch Pencils 1.2.1"
+   git push origin v1.2.1
    ```
 
 The tag workflow rebuilds and tests the pack before publishing a GitHub release
-with the bundle, pack and icon ZIPs, both previews, validation report, brush catalog,
+with the bundle, pack and icon ZIPs, three previews, charcoal palette, validation report, brush catalog,
 and SHA-256 checksums.
 It uses GitHub's built-in token; no additional secrets are required. Existing release
 tags should stay attached to their published commits.

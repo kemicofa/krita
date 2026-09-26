@@ -19,7 +19,7 @@ def validate(path):
         assert len(z.namelist()) == len(set(z.namelist())), 'Duplicate archive path'
         assert z.read('mimetype') == b'application/x-krita-resourcebundle'
         entries = ET.fromstring(z.read('META-INF/manifest.xml'))
-        counts = {'paintoppresets':0,'brushes':0,'patterns':0}
+        counts = {'paintoppresets':0,'brushes':0,'patterns':0,'palettes':0}
         names = set()
         for entry in entries:
             name = entry.get(ns+'full-path')
@@ -37,6 +37,9 @@ def validate(path):
                 assert len(data)==header+w*h and max(data[header:])>0
             elif typ=='patterns':
                 Image.open(io.BytesIO(data)).verify()
+            elif typ=='palettes':
+                assert data.startswith(b'GIMP Palette\n')
+                assert b'16 16 16 Near Black Charcoal' in data
             else:
                 im = Image.open(io.BytesIO(data))
                 assert im.size==(200,200) and im.info['version']=='5.0'
@@ -69,10 +72,10 @@ def validate(path):
                 for key,value in params.items():
                     if key.endswith('Sensor'):
                         ET.fromstring(value)
-        assert counts=={'paintoppresets':10,'brushes':10,'patterns':4}, counts
+        assert counts=={'paintoppresets':11,'brushes':11,'patterns':4,'palettes':1}, counts
         ET.fromstring(z.read('meta.xml'))
         assert z.read('LICENSE.txt')
-    print('PASS: 10 presets, 10 tips, 4 textures, checksums, embedded resources and tilt sensors.')
+    print('PASS: 11 presets, 11 tips, 4 textures, 1 palette, checksums, embedded resources and tilt sensors.')
 
 
 if __name__=='__main__':

@@ -73,6 +73,14 @@ SPECS = [
          pressure_floor=.48, opacity=.98, flow=.87, grain='laid', shape='block',
          softness=.18, tooth=.30, ratio=.32, spacing=.10, texture=.39,
          purpose='Dense, slightly waxy marks with a squared edge; use rust red for sanguine studies.'),
+    dict(id=11, name='Soft Touch', grade='SOFT', size=48, upright=.25,
+         pressure_floor=0., opacity=1., flow=1., grain='fine', shape='round',
+         softness=.14, tooth=.14, ratio=.40, spacing=.07, texture=.42,
+         size_curve='0,0;0.02,0.03;0.04,0.10;0.08,0.28;0.15,0.62;0.25,0.88;0.45,1;1,1;',
+         opacity_curve='0,0;0.02,0.55;0.06,0.85;0.15,0.97;0.3,1;1,1;',
+         flow_curve='0,0.55;0.05,0.90;0.15,1;1,1;',
+         recommended_color='#101010',
+         purpose='Dark, thick graphite with light pressure; eases down to a pointy end on lift, with broad tilt shading.'),
 ]
 
 
@@ -186,13 +194,16 @@ def make_preset(spec, tip_name, tip_data, pattern_name, pattern_data):
                      BrightnessAdjustment='0', ContrastAdjustment='0', AutoAdjustMidPoint='0')
     param(root, 'brush_definition', ET.tostring(tip, encoding='unicode'))
     pf = spec['pressure_floor']
-    size_sensors = [('pressure', f'0,{pf};0.5,{pf+(1-pf)*.55};1,1;')]
+    # A zero floor lets Soft Touch close to a point. Its early rise supplies
+    # useful width without requiring high pressure; the other pencils keep
+    # their original response curves.
+    size_sensors = [('pressure', spec.get('size_curve', f'0,{pf};0.5,{pf+(1-pf)*.55};1,1;'))]
     if spec['id'] != 6:
         u = spec['upright']
         size_sensors.append(('declination', f'0,1;0.25,0.95;0.55,0.56;0.80,{u*1.9};1,{u};'))
     option(root, 'Size', size_sensors)
-    option(root, 'Opacity', [('pressure', '0,0.03;0.25,0.26;0.60,0.70;1,1;')], spec['opacity'])
-    option(root, 'Flow', [('pressure', '0,0.35;0.5,0.78;1,1;')], spec['flow'])
+    option(root, 'Opacity', [('pressure', spec.get('opacity_curve', '0,0.03;0.25,0.26;0.60,0.70;1,1;'))], spec['opacity'])
+    option(root, 'Flow', [('pressure', spec.get('flow_curve', '0,0.35;0.5,0.78;1,1;'))], spec['flow'])
     option(root, 'Rotation', [('ascension', IDENTITY)], enabled=spec['id']!=6)
     option(root, 'Ratio', [('declination', f"0,{spec['ratio']};0.55,{(spec['ratio']+1)/2};1,1;")], enabled=spec['id']!=6)
     for name in ['Scatter','Mirror','Softness','Sharpness','Spacing','Darken','Mix','h','s','v','Rate']:
@@ -231,7 +242,7 @@ def icon(spec):
         im = artwork.convert('RGB').resize((200,200),Image.Resampling.LANCZOS)
     draw = ImageDraw.Draw(im)
     colors = ['#4f6277','#89631c','#185d61','#762d40','#44505f',
-              '#41596a','#aa4e16','#383b3d','#403c38','#9b482e']
+              '#41596a','#aa4e16','#383b3d','#403c38','#9b482e','#101010']
     accent = colors[spec['id']-1]
     label_font = font(24,True)
     label_width = draw.textbbox((0,0),spec['grade'],font=label_font)[2]
@@ -244,18 +255,19 @@ def icon(spec):
 
 
 def icon_preview(thumbnails):
-    page = Image.new('RGB',(1280,812),'#efeee8')
+    footer = 126 + math.ceil(len(thumbnails)/5)*280
+    page = Image.new('RGB',(1280,footer+126),'#efeee8')
     draw = ImageDraw.Draw(page)
     draw.text((40,25),'TILT SKETCH PENCILS / ICONS',font=font(34),fill='#253b3c')
-    draw.text((40,73),'Ten illustrated presets, with grade labels and distinct tool silhouettes.',font=font(19),fill='#526563')
+    draw.text((40,73),f'{len(thumbnails)} illustrated presets, with grade labels and distinct tool silhouettes.',font=font(19),fill='#526563')
     for index,(spec,thumbnail) in enumerate(thumbnails):
         x,y = 40+(index%5)*240,110+(index//5)*280
         draw.rounded_rectangle((x-8,y-8,x+216,y+251),radius=10,fill='#ffffff')
         page.paste(thumbnail,(x+4,y))
         draw.text((x+2,y+218),spec['name'],font=font(18),fill='#253b3c')
-    draw.text((40,686),'64 PX / COMPACT PRESET GRID',font=font(15),fill='#526563')
+    draw.text((40,footer),'64 PX / COMPACT PRESET GRID',font=font(15),fill='#526563')
     for index,(_,thumbnail) in enumerate(thumbnails):
-        page.paste(thumbnail.resize((64,64),Image.Resampling.LANCZOS),(40+index*80,718))
+        page.paste(thumbnail.resize((64,64),Image.Resampling.LANCZOS),(40+index*80,footer+32))
     page.save(OUTPUT/'Icon_Preview.png')
 
 
@@ -277,7 +289,7 @@ def bundle(files):
 <meta:bundle-version>1</meta:bundle-version>
 <dc:title>Tilt Sketch Pencils</dc:title>
 <dc:author>kemicofa</dc:author>
-<dc:description>Ten original pencils for sketching, with pressure, pen tilt, and embedded paper grain.</dc:description>
+<dc:description>{len(SPECS)} original pencils for sketching, with pressure, pen tilt, and embedded paper grain.</dc:description>
 <meta:creation-date>2026-09-26</meta:creation-date>
 <meta:meta-userdefined meta:name="tag" meta:value="Tilt Sketch Pencils"/>
 <meta:meta-userdefined meta:name="license" meta:value="MIT"/>
@@ -288,7 +300,7 @@ def bundle(files):
     d.rectangle((0,0,399,17),fill='#397777')
     for i,line in enumerate(['TILT','SKETCH','PENCILS']):
         d.text((32,35+i*65),line,font=font(48,True),fill='#253b3c')
-    d.text((34,279),'10 tools for line & shade',font=font(23),fill='#397777')
+    d.text((34,279),f'{len(SPECS)} tools for line & shade',font=font(23),fill='#397777')
     d.text((34,335),'GRAPHITE / CHARCOAL / CONTE',font=font(16),fill='#575854')
     def write(z, path, data, compress=zipfile.ZIP_DEFLATED):
         entry = zipfile.ZipInfo(path, date_time=(2026,1,1,0,0,0))
@@ -311,7 +323,9 @@ def main():
     parser.add_argument('--output',type=Path,default=OUTPUT)
     OUTPUT = parser.parse_args().output.resolve()
     OUTPUT.mkdir(parents=True,exist_ok=True)
-    files = {}
+    palette = b'GIMP Palette\nName: TSP Graphite Charcoal\nColumns: 1\n# Deep graphite / charcoal\n16 16 16 Near Black Charcoal\n'
+    files = {'palettes/TSP_Graphite_Charcoal.gpl': palette}
+    (OUTPUT/'TSP_Graphite_Charcoal.gpl').write_bytes(palette)
     thumbnails = []
     (OUTPUT/'icons').mkdir(exist_ok=True)
     patterns = {}
@@ -344,7 +358,7 @@ def main():
     bundle(files)
     icon_preview(thumbnails)
     (OUTPUT/'brush_catalog.json').write_text(json.dumps(SPECS,indent=2)+'\n')
-    print(f"Built {len(SPECS)} presets, 10 brush tips, 4 paper textures.")
+    print(f"Built {len(SPECS)} presets, {len(SPECS)} brush tips, 4 paper textures, 1 palette.")
     print(OUTPUT/'Tilt_Sketch_Pencils.bundle')
 
 

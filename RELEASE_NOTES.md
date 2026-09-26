@@ -1,20 +1,21 @@
-All ten sketching pencils now have distinct illustrated preset icons. Graphite
-grades have different colors and points; the mechanical, flat carpenter, natural
-willow charcoal, and sanguine Conté tools have recognizable shapes and materials.
-Each icon includes its grade, preset number, and tilt/fixed-tip label.
+Adds **TSP 11 - Soft Touch**: a pencil that makes thick, dark marks with light
+pressure and narrows to a **pointy end** when you ease off while moving. Tilt still
+widens and flattens the contact for charcoal-style shading.
 
-The release includes an **Icon Preview** and a separate **Icons ZIP** containing the
-ten 200 × 200 PNGs. Full-size source artwork and generation prompts are in the
-repository. Brush tips, paper grain, pressure curves, and tilt behavior are the same
-as v1.0.0.
+For the deep, near-black charcoal color, choose **Near Black Charcoal (#101010)**
+from the included **TSP Graphite Charcoal** palette. The brush uses your foreground
+color, so select the swatch after selecting the preset.
 
 Download **Tilt_Sketch_Pencils.bundle** and import it through **Settings → Manage
-Resource Libraries → Import**. Search your brush presets for **TSP**.
+Resource Libraries → Import**, then search your brush presets for **TSP 11**.
+Deactivate the older bundle when updating.
 
-The pack ZIP includes the bundle, both preview sheets, guide, brush catalog, license, and test
-report. Pressure and tilt were checked through actual Krita rendering with synthetic
-tablet events; physical tablet feel has not been tested. A tilt-capable pen/tablet
-is needed for the tilt effects.
+This release contains all eleven pencils, illustrated icons, the charcoal palette,
+and a **Soft Touch Preview** showing actual light-pressure strokes and tapered
+endings in Krita. The pack ZIP includes the bundle, guide, previews, palette, catalog,
+license, and validation report. A separate Icons ZIP contains all eleven preset PNGs.
 
-Updating from v1.0.0: deactivate the older library and import the new bundle. The
-preset names are unchanged; locally saved copies retain their previous icons.
+Automated Krita rendering checks verify the light-pressure response and the pointed
+taper with the pen upright and tilted. Physical tablet feel has not been tested.
+Ease off while moving to draw a point: an abrupt lift at constant pressure can
+still leave a blunt end. The original ten pencils retain their existing settings.

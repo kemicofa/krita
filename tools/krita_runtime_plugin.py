@@ -1,4 +1,4 @@
-from krita import Krita, Extension, Scratchpad, ManagedColor, Preset
+from krita import Krita, Extension, Scratchpad, ManagedColor, Preset, Palette
 from PyQt5.QtCore import QTimer, QEvent, QPointF, Qt
 from PyQt5.QtGui import QColor, QTabletEvent, QImage
 from PyQt5.QtWidgets import QApplication, QWidget
@@ -38,8 +38,15 @@ class PencilTest(Extension):
             self.view.setForeGroundColor(ManagedColor.fromQColor(QColor('#252527')))
             self.presets = {k:v for k,v in app.resources('preset').items() if k.startswith('TSP ')}
             log('Loaded custom presets: '+str(sorted(self.presets)))
-            assert len(self.presets)==10, 'All ten presets must load from bundle'
             self.catalog = json.loads((ROOT/'brush_catalog.json').read_text())
+            assert len(self.presets)==len(self.catalog), 'All presets must load from bundle'
+            palette = Palette(app.resources('palette')['TSP Graphite Charcoal'])
+            assert palette.numberOfEntries()==1
+            swatch = palette.colorSetEntryByIndex(0)
+            assert swatch.isValid()
+            self.report['palette'] = {'name':'TSP Graphite Charcoal',
+                                      'color':swatch.color().colorForCanvas(self.view.canvas()).name()}
+            assert self.report['palette']['color']=='#101010'
             self.pad = Scratchpad(self.view, QColor('white'))
             self.pad.linkCanvasZoom(False)
             self.pad.resize(1122,472)
@@ -89,6 +96,7 @@ class PencilTest(Extension):
             self.spec=self.catalog[self.index]
             resource=self.presets[self.spec['preset_name']]
             self.view.setCurrentBrushPreset(resource)
+            self.view.setForeGroundColor(ManagedColor.fromQColor(QColor(self.spec.get('recommended_color','#252527'))))
             QApplication.processEvents()
             xml=Preset(resource).toXML()
             (OUT/f"{self.spec['id']:02}-loaded.xml").write_text(xml)
@@ -125,6 +133,25 @@ class PencilTest(Extension):
         try:
             self.pad.copyScratchpadImageData().save(str(OUT/f"{self.spec['id']:02}-metrics.png"))
             log('Rendered '+self.spec['preset_name'])
+            if self.spec['id']==11:
+                self.blank()
+                points = [(60+i,90) for i in range(941)]
+                self.stroke(points,lambda t:.20)
+                # Pressure falls over the last 30% while the pen keeps moving.
+                # The release event alone cannot describe a taper.
+                taper = lambda t: .20*min(1.,max(0.,(1-t)/.30))
+                self.stroke([(x,210) for x,_ in points],taper)
+                self.stroke([(x,340) for x,_ in points],taper,lambda t:(0,55))
+                QTimer.singleShot(400,self.save_taper)
+                return
+            self.index+=1
+            self.next_brush()
+        except Exception:
+            self.fail()
+
+    def save_taper(self):
+        try:
+            self.pad.copyScratchpadImageData().save(str(OUT/'11-taper.png'))
             self.index+=1
             self.next_brush()
         except Exception:

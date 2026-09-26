@@ -57,6 +57,8 @@ jobs:
             dist/Tilt_Sketch_Pencils_Icons-*.zip
             dist/Brush_Preview.png
             dist/Icon_Preview.png
+            dist/Soft_Touch_Preview.png
+            dist/TSP_Graphite_Charcoal.gpl
             dist/SHA256SUMS.txt
             dist/validation.json
             dist/brush_catalog.json
